@@ -6,5 +6,5 @@ module.exports = {
         'py35', 'py36', 'py37', 'jython', 'pypy', 'pypy3',
     ],
     COMMAND: "git diff --name-only HEAD",
-    COMMAND_PRE_COMMIT: "git diff --name-only HEAD~1...HEAD"
+    COMMAND_PRE_COMMIT: "git diff --name-only @{upstream}"
 };
