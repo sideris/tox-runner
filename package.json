@@ -1,0 +1,18 @@
+{
+  "name": "toxotis",
+  "version": "0.0.1",
+  "description": "Toxotis is a configurable utility that enables you to run only the tests for environments that have changed.",
+  "main": "index.js",
+  "repository": "git@github.com:sideris/tox-runner.git",
+  "author": "Petros G. Sideris <pgsideris@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "add": "^2.0.6",
+    "commander": "^2.11.0",
+    "ini": "^1.3.4",
+    "yarn": "^0.27.5"
+  },
+  "bin": {
+    "toxotis": "index.js"
+  }
+}
