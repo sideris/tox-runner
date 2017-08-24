@@ -10,10 +10,11 @@ module.exports.getToxotisConfig = () => {
     return findFile(constants.TOXOTIS_FILE)
 };
 
-module.exports.createToxotisConfig = () => {
-    fs.writeFile("toxotis.yml", "", err => {
+module.exports.createToxotisConfig = (values) => {
+    values = values || "";
+    fs.writeFile(constants.TOXOTIS_FILE, JSON.stringify(values, null, 4), err => {
         if(err) return console.log(err);
-        console.log("Created toxotis.yml!");
+        console.log(`Created ${constants.TOXOTIS_FILE}!`);
     });
 };
 
