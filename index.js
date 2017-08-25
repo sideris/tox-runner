@@ -2,11 +2,9 @@
 'use strict'
 const cmder = require('commander')
 const utils = require( "./utils")
-const path = require("path")
 const constants = require("./constants.js")
 const exec = require('child_process').exec
 const ask = require('node-ask').ask
-let changes = []
 
 cmder
     .version('1.0.1')
@@ -38,22 +36,24 @@ function promiseFromChildProcess(child) {
 
 const diffCommand = cmder.precommit ? constants.COMMAND_PRE_COMMIT : constants.COMMAND
 const changeList = exec(diffCommand)
+
 promiseFromChildProcess(changeList)
 changeList.stdout.on('data',  data => {
-    const changes = data.split("\n")
+    let changes = data.split("\n")
+    if (process.argv.length === 2) // no additional params
+        run(changes)
 })
 changeList.stderr.on('data',  err => { throw err })
 changeList.on('close', function (code) {})
 
 let command;
-if (cmder.all)
+if (cmder.all) {
     command = exec(`tox`)
-else if (cmder.env) // FIXME yeah that doesn't work
+    command.stdout.pipe(process.stdout)
+} else if (cmder.env) { // FIXME yeah that doesn't work
     command = exec(`tox -e ${cmder.env}`)
-else if(process.argv.length === 2)
-    command = run(changes)
-if(command)
-command.stdout.pipe(process.stdout)
+    command.stdout.pipe(process.stdout)
+}
 
 
 function makeConfig() {
@@ -78,8 +78,7 @@ function makeConfig() {
             fn: 'prompt'
         })
     }
-    console.log('Press enter to skip or enter the top level folder that you ' +
-        'want to detect changes for the corresponding tox environment')
+    console.log('ENTER skips. Add the folder whose changes should run the test env in question')
     ask(questions)
         .then(answers => {
             for(let env in answers) {
@@ -108,16 +107,18 @@ function run(changes) {
                 alwaysRun.push(env)
         }
     }
+    console.log(folderMapping, config)
     let tasks = [].concat(alwaysRun)
     changes.forEach(v => {
         const projectName = v.split("/")[0]
-        if(folderMapping[projectName]) {
+        if(folderMapping[projectName])
             tasks = tasks.concat(folderMapping[projectName].envs)
-        }
     })
     let environments = tasks.reduce((x, y) => x + y + ",", "")
     environments = environments.substr(0, environments.length - 1)
     let toxCommand = `tox -e ${environments}`;
+
     console.log(`Running ${toxCommand}`)
-    return exec(toxCommand)
+    let tox = exec(toxCommand)
+    tox.stdout.pipe(process.stdout)
 }

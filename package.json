@@ -1,6 +1,6 @@
 {
   "name": "toxotis",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Toxotis is a configurable utility that enables you to run only the tests for environments that have changed.",
   "main": "index.js",
   "repository": "git@github.com:sideris/tox-runner.git",
