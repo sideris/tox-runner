@@ -107,7 +107,6 @@ function run(changes) {
                 alwaysRun.push(env)
         }
     }
-    console.log(folderMapping, config)
     let tasks = [].concat(alwaysRun)
     changes.forEach(v => {
         const projectName = v.split("/")[0]
