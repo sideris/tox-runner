@@ -6,15 +6,7 @@ const path = require("path")
 const constants = require("./constants.js")
 const exec = require('child_process').exec
 const ask = require('node-ask').ask
-
-function promiseFromChildProcess(child) {
-    return new Promise(function (resolve, reject) {
-        child.addListener("error", reject)
-        child.addListener("exit", resolve)
-    })
-}
-
-
+let changes = []
 
 cmder
     .version('1.0.1')
@@ -37,24 +29,31 @@ cmder.version('1.0.1')
     .option('-pc, --precommit', 'Check difference after adding files. Useful precommit hook.')
 cmder.parse(process.argv)
 
-if (cmder.all)
-    exec(`tox`)
-else if (cmder.env)
-    exec(`tox -e ${cmder.env}`)
+function promiseFromChildProcess(child) {
+    return new Promise(function (resolve, reject) {
+        child.addListener("error", reject)
+        child.addListener("exit", resolve)
+    })
+}
 
 const diffCommand = cmder.precommit ? constants.COMMAND_PRE_COMMIT : constants.COMMAND
 const changeList = exec(diffCommand)
 promiseFromChildProcess(changeList)
 changeList.stdout.on('data',  data => {
-    const dators = data.split("\n")
-    run(dators)
-    // dators.forEach(v => {
-    //     const projectName = v.split("/")[0]
-    //     console.log(projectName, path.extname(projectName))
-    // })
+    const changes = data.split("\n")
 })
 changeList.stderr.on('data',  err => { throw err })
 changeList.on('close', function (code) {})
+
+let command;
+if (cmder.all)
+    command = exec(`tox`)
+else if (cmder.env) // FIXME yeah that doesn't work
+    command = exec(`tox -e ${cmder.env}`)
+else if(process.argv.length === 2)
+    command = run(changes)
+command.stdout.pipe(process.stdout)
+
 
 function makeConfig() {
     let toxotisConfig = {}
@@ -115,22 +114,9 @@ function run(changes) {
             tasks = tasks.concat(folderMapping[projectName].envs)
         }
     })
-    let toxEnvCommand = tasks.reduce((x, y) => x + y +",", "")
-    toxEnvCommand = toxEnvCommand.substr(0, toxEnvCommand.length - 1)
-    console.log(toxEnvCommand)
-
-    var spawn = require('child_process').spawn
-
-    let tox = spawn(`tox -e ${toxEnvCommand}`)
-    tox.stdout.on('data', function (data) {
-        console.log('stdout: ' + data.toString());
-    });
-
-    tox.stderr.on('data', function (data) {
-        console.log('stderr: ' + data.toString());
-    });
-
-    tox.on('exit', function (code) {
-        console.log('child process exited with code ' + code.toString());
-    });
+    let environments = tasks.reduce((x, y) => x + y + ",", "")
+    environments = environments.substr(0, environments.length - 1)
+    let toxCommand = `tox -e ${environments}`;
+    console.log(`Running ${toxCommand}`)
+    return exec(toxCommand)
 }
