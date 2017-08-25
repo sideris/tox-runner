@@ -52,6 +52,7 @@ else if (cmder.env) // FIXME yeah that doesn't work
     command = exec(`tox -e ${cmder.env}`)
 else if(process.argv.length === 2)
     command = run(changes)
+if(command)
 command.stdout.pipe(process.stdout)
 
 
