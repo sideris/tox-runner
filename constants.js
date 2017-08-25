@@ -11,4 +11,4 @@ module.exports = {
         ALWAYS: 'always',
         ON_CHANGE: 'change'
     }
-};
+}
